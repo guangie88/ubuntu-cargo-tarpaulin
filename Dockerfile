@@ -1,4 +1,5 @@
-FROM ubuntu:xenial
+ARG UBUNTU_IMAGE=xenial
+FROM ubuntu:$UBUNTU_IMAGE
 
 ARG RUST_TOOLCHAIN=stable
 ARG TARPAULIN_REV="-b master"
@@ -9,7 +10,8 @@ ENV PATH=${CARGO_HOME}/bin:${PATH}
 
 RUN set -x \
     && apt-get update \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    && DEBIAN_FRONTEND=noninteractive apt-get install \
+    -y --no-install-recommends \
     build-essential \
     ca-certificates \
     cmake \
@@ -29,7 +31,6 @@ RUN set -x \
     && cargo install -f --path . \
     && cd .. \
     && rm -rf tarpaulin \
-    && apt-get remove -y --auto-remove curl git \
     && apt-get clean \
     && rm ${CARGO_HOME}/bin/rustup \
     && rm -rf ${CARGO_HOME}/registry/* \

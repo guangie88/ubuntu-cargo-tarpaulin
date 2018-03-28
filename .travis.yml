@@ -1,0 +1,37 @@
+services:
+- docker
+
+env:
+  global:
+  - IMAGE_NAME=ubuntu-cargo-tarpaulin
+  
+  matrix:
+  - UBUNTU_IMAGE=xenial
+    RUST_TOOLCHAIN=stable
+
+  - UBUNTU_IMAGE=xenial
+    RUST_TOOLCHAIN=beta
+
+  - UBUNTU_IMAGE=xenial
+    RUST_TOOLCHAIN=nightly
+
+before_script:
+- set -e
+- if [ "$TRAVIS_EVENT_TYPE" = "cron" ]; then
+    docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
+  fi
+
+script:
+- cd $UBUNTU_IMAGE
+- docker build -t $DOCKER_USERNAME/$IMAGE_NAME --build-arg RUST_TOOLCHAIN=$RUST_TOOLCHAIN .
+- export TAG="$UBUNTU_IMAGE-$RUST_TOOLCHAIN"
+
+after_success: |
+  if [ "$TRAVIS_EVENT_TYPE" = "cron" ]; then
+    docker tag $DOCKER_USERNAME/$IMAGE_NAME $DOCKER_USERNAME/$IMAGE_NAME:$TAG;
+    docker push $DOCKER_USERNAME/$IMAGE_NAME:$TAG;
+  fi
+
+branches:
+  only:
+  - master
